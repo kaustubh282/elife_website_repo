@@ -13,20 +13,20 @@ function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-        <div className="flex items-center gap-1.5">
-          <img
-            src={logo}
-            alt="eLife IT Solutions Logo"
-            className="h-12 w-auto object-contain"
-          />
+      <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-1.5">
+       <img
+        src={logo}
+        alt="eLife IT Solutions Logo"
+        className="h-12 w-auto object-contain"
+      />
 
-          <div className="text-sm font-bold leading-tight text-slate-900">
-            eLife IT Solutions
-            <div className="text-[10px] font-medium tracking-[0.2em] text-blue-700">
-              IRELAND · CONSULTING
-            </div>
-          </div>
+      <div className="text-sm font-bold leading-tight text-slate-900">
+        eLife IT Solutions
+        <div className="text-[10px] font-medium tracking-[0.2em] text-blue-700">
+          IRELAND · CONSULTING
         </div>
+      </div>
+    </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-2 text-sm font-medium md:flex">
