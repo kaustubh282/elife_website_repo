@@ -1,7 +1,7 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import emailjs from "@emailjs/browser";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 
 export default function CareersPage() {
@@ -16,7 +16,9 @@ export default function CareersPage() {
     });
 
     const [touched, setTouched] = useState({});
-
+    const [resumeFile, setResumeFile] = useState(null);
+    const formRef = useRef();
+    
     const patterns = {
         firstName: /^[A-Za-z ]{2,}$/,
         lastName: /^[A-Za-z ]{2,}$/,
@@ -27,9 +29,21 @@ export default function CareersPage() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+    
+        const fieldMap = {
+            from_name: "firstName",
+            last_name: "lastName",
+            from_email: "email",
+            phone: "mobile",
+            position: "position",
+            message: "message",
+        };
+    
+        const stateField = fieldMap[name] || name;
+    
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [stateField]: value,
         }));
     };
 
@@ -50,61 +64,65 @@ export default function CareersPage() {
             : "border-gray-300 focus:ring-blue-500"
         }`;
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        const allValid =
-            patterns.firstName.test(formData.firstName) &&
-            patterns.lastName.test(formData.lastName) &&
-            patterns.email.test(formData.email) &&
-            patterns.mobile.test(formData.mobile) &&
-            patterns.position.test(formData.position);
-
-        if (!allValid) {
-            setTouched({
-                firstName: true,
-                lastName: true,
-                email: true,
-                mobile: true,
-                position: true,
-            });
-            return;
-        }
-
-        emailjs
-            .send(
-                "YOUR_SERVICE_ID",
-                "YOUR_CAREERS_TEMPLATE_ID",
-                {
-                    subject: "Job Application Mail",
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    mobile: formData.mobile,
-                    position: formData.position,
-                    message: formData.message,
-                    to_email: "sales@elifeitsolutions.com",
-                },
-                "YOUR_PUBLIC_KEY"
-            )
-            .then(() => {
-                alert("Your application has been submitted successfully.");
-
-                setFormData({
-                    firstName: "",
-                    lastName: "",
-                    email: "",
-                    mobile: "",
-                    position: "",
-                    message: "",
+        const handleSubmit = (e) => {
+            e.preventDefault();
+        
+            const allValid =
+                patterns.firstName.test(formData.firstName) &&
+                patterns.lastName.test(formData.lastName) &&
+                patterns.email.test(formData.email) &&
+                patterns.mobile.test(formData.mobile) &&
+                patterns.position.test(formData.position);
+        
+            if (!allValid) {
+                setTouched({
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    mobile: true,
+                    position: true,
                 });
-
-                setTouched({});
-            })
-            .catch(() => {
-                alert("Something went wrong. Please try again.");
-            });
-    };
+                return;
+            }
+        
+            if (!resumeFile) {
+                alert("Please upload your resume in PDF format.");
+                return;
+            }
+        
+            emailjs
+                .sendForm(
+                    "elife_email_Service",
+                    "template_hpn70is",
+                    formRef.current,
+                    {
+                        publicKey: "guB2rDIMzvDoBNYQ1",
+                    }
+                )
+                .then(() => {
+                    alert("Your application has been submitted successfully.");
+        
+                    setFormData({
+                        firstName: "",
+                        lastName: "",
+                        email: "",
+                        mobile: "",
+                        position: "",
+                        message: "",
+                    });
+        
+                    setTouched({});
+                    setResumeFile(null);
+        
+                    if (formRef.current) {
+                        formRef.current.reset();
+                    }
+                })
+                .catch((error) => {
+                    console.error("EmailJS error:", error);
+                    alert("Something went wrong. Please try again.");
+                });
+        };
 
     return (
         <>
@@ -171,12 +189,12 @@ export default function CareersPage() {
                                 Job Application Form
                             </h2>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
+                            <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <input
                                             type="text"
-                                            name="firstName"
+                                            name="from_name"
                                             value={formData.firstName}
                                             onChange={handleChange}
                                             onBlur={() => handleBlur("firstName")}
@@ -193,7 +211,7 @@ export default function CareersPage() {
                                     <div>
                                         <input
                                             type="text"
-                                            name="lastName"
+                                            name="last_name"
                                             value={formData.lastName}
                                             onChange={handleChange}
                                             onBlur={() => handleBlur("lastName")}
@@ -211,7 +229,7 @@ export default function CareersPage() {
                                 <div>
                                     <input
                                         type="email"
-                                        name="email"
+                                        name="from_email"
                                         value={formData.email}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("email")}
@@ -228,7 +246,7 @@ export default function CareersPage() {
                                 <div>
                                     <input
                                         type="tel"
-                                        name="mobile"
+                                        name="phone"
                                         value={formData.mobile}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("mobile")}
@@ -261,23 +279,50 @@ export default function CareersPage() {
 
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-2">
-                                        Upload Resume
+                                 Upload Resume
                                     </label>
 
                                     <label className="flex items-center gap-3 w-full border-2 border-dashed border-blue-300 rounded-lg px-4 py-4 bg-white cursor-pointer hover:border-blue-500 transition">
-                                        <Upload className="w-6 h-6 text-blue-600" />
-                                        <span className="text-gray-600">Upload Resume PDF only</span>
+                                    <Upload className="w-6 h-6 text-blue-600" />
+                            
+                                    <span className="text-gray-600">
+                                        {resumeFile ? resumeFile.name : "Upload Resume PDF only"}
+                                    </span>
 
-                                        <input
-                                            type="file"
-                                            accept="application/pdf,.pdf"
-                                            className="hidden"
-                                        />
-                                    </label>
+                                    <input 
+                                                type="file"
+                                                name="resume"
+                                                accept="application/pdf,.pdf"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                    
+                                                    if (!file) {
+                                                        setResumeFile(null);
+                                                        return;
+                                                    }
 
-                                    <p className="text-gray-500 text-sm mt-1">
-                                        Accepted format: PDF only. Example: resume.pdf
-                                    </p>
+                                                    if (file.type !== "application/pdf") {
+                                                        alert("Please upload a PDF file only.");
+                                                        e.target.value = "";
+                                                        setResumeFile(null);
+                                                        return;
+                                                    }
+
+                                                    setResumeFile(file);
+                                                }}
+                                            />
+                                        </label>
+
+                                        {resumeFile ? (
+                                            <p className="text-green-600 text-sm mt-2">
+                                                Resume selected successfully: {resumeFile.name}
+                                            </p>
+                                        ) : (
+                                            <p className="text-gray-500 text-sm mt-1">
+                                                Accepted format: PDF only. Example: resume.pdf
+                                            </p>
+                                        )}
                                 </div>
 
                                 <textarea

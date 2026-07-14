@@ -69,18 +69,18 @@ export default function ContactPage() {
 
     emailjs
       .send(
-        "YOUR_SERVICE_ID",
-        "YOUR_TEMPLATE_ID",
-        {
-          subject: "Client Enquiry Mail",
-          fullName: formData.fullName,
-          email: formData.email,
-          organization: formData.organization,
-          mobile: formData.mobile,
-          message: formData.message,
-          to_email: "sales@elifeitsolutions.com",
-        },
-        "YOUR_PUBLIC_KEY"
+      "elife_email_Service",
+      "template_wt989xh",
+      {
+      from_name: formData.fullName,
+      from_email: formData.email,
+      company: formData.organization || "Not provided",
+      subject: "Client Enquiry Mail",
+      message: `${formData.message}
+
+     Phone Number: ${formData.mobile}`,
+    },
+      "guB2rDIMzvDoBNYQ1"
       )
       .then(() => {
         alert("Your enquiry has been sent successfully.");
